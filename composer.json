@@ -1,0 +1,26 @@
+{
+    "name": "kmj/paypalbridgebundle",
+    "type": "symfony-bundle",
+    "description": "Symfony2 Bundle creates a bridge for the PayPal REST SDK",
+    "keywords": ["KMJ", "paypal"],
+    "homepage": "http://github.com/Demoboy/PayPalBridgeBundle",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Kaelin Jacobson",
+            "email": "kaelinjacobson@gmail.com"
+        }
+    ],
+    "require": {
+        "php": ">=5.3.3",
+        "paypal/rest-api-sdk-php": "dev-master"
+    },
+    "require-dev": {
+        "symfony/framework-bundle": ">=2.0"
+    },
+    "autoload": {
+        "psr-0": { "KMJ\\PayPalBridgeBundle": "" }
+    },
+    "minimum-stability": "dev",
+    "target-dir": "KMJ/PayPalBridgeBundle"
+}
