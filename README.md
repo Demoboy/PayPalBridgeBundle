@@ -17,7 +17,7 @@ KMJPayPalBridgeBundle can conveniently be installed via Composer. Just add the f
     require: {
         // ..
         "paypal/rest-api-sdk-php": "dev-master",
-        "kmj/paypalbridgemaster": "dev-master"
+        "kmj/paypalbridgebundle": "dev-master"
 
     }
 }
@@ -60,7 +60,7 @@ This bundle also automatically swtiches the bundle based on the environment. The
 
 3) Configuration
 ----------------------------------
-
+<pre>
 kmj_pay_pal_bridge:
     clientId:                                           //Client Id provided from developer.paypal.com
     secret:                                             //Client Secret provided from developer.paypal.com
@@ -71,3 +71,4 @@ kmj_pay_pal_bridge:
     http:
         timeout: 30                                     //The http timeout before an error is generated
         retry: true                                     //Should the request be tried again if timeout is reached
+</pre>
