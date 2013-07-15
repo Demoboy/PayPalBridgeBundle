@@ -5,18 +5,30 @@ namespace KMJ\PayPalBridgeBundle\Service;
 use PayPal\Auth\OAuthTokenCredential;
 use PayPal\Rest\ApiContext;
 
-define('PP_CONFIG_PATH', __DIR__.'/../Resources/tmp');
+define('PP_CONFIG_PATH', tempnam(sys_get_temp_dir(), ""));
 
 class BridgeService {
 
     protected $clientId;
     protected $secret;
+    
+    const PAYPAL_PRODUCTION_URL = "https://api.paypal.com";
+    const PAYPAL_SANDBOX_URL = "https://api.sandbox.paypal.com";
+    
 
     public function __construct(array $config, $kernel) {
-        $this->setClientId($config['clientId'])
-                ->setSecret($config['secret']);
-
-        $iniConfigs = array(
+        //create temp file and save symfony config to it
+        if ($config['enviroment'] == "production") {
+            $iniConfigs['service.EndPoint'] = self::PAYPAL_PRODUCTION_URL;
+            $this->setClientId($config['production']['clientId'])
+                ->setSecret($config['production']['secret']);
+        } else {
+            $iniConfigs['service.EndPoint'] = self::PAYPAL_SANDBOX_URL;
+            $this->setClientId($config['sandbox']['clientId'])
+                ->setSecret($config['sandbox']['secret']);
+        }
+        
+         $iniConfigs = array(
             'acct1.ClientId' => $this->getClientId(),
             'acct1.ClientSecret' => $this->getSecret(),
             'http.ConnectionTimeOut' => $config['http']['timeout'],
@@ -25,13 +37,6 @@ class BridgeService {
             'log.LogEnabled' => $config['logs']['enabled'],
             'log.LogLevel' => $config['logs']['level'],
         );
-
-        //create temp file and save symfony config to it
-        if ($kernel->getEnvironment() == "prod") {
-            $iniConfigs['service.EndPoint'] = "https://api.paypal.com";
-        } else {
-            $iniConfigs['service.EndPoint'] = "https://api.sandbox.paypal.com";
-        }
 
         //create file in temp dir
         $fh = fopen(PP_CONFIG_PATH . '/sdk_config.ini', 'w');

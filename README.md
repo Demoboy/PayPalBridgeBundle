@@ -62,8 +62,13 @@ This bundle also automatically swtiches the bundle based on the environment. The
 ----------------------------------
 <pre>
 kmj_pay_pal_bridge:
-    clientId:                                           //Client Id provided from developer.paypal.com
-    secret:                                             //Client Secret provided from developer.paypal.com
+    environment: sandbox/production                      //The environment to make the calls to
+    sandbox:
+        clientId:                                           //Client Id provided from developer.paypal.com
+        secret:                                             //Client Secret provided from developer.paypal.com
+    production:
+        clientId:                                           //Client Id provided from developer.paypal.com
+        secret:                                             //Client Secret provided from developer.paypal.com
     logs:
         enabled: true                                   //Should logs be used
         filename: %kernel.root_dir%/logs/paypal.log     //the location for the log file
