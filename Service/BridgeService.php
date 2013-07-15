@@ -76,4 +76,50 @@ class BridgeService {
         $cred = new OAuthTokenCredential($this->getClientId(), $this->getSecret());
         return new ApiContext($cred, 'Request' . time());
     }
+    
+     public function detectCardType($cardNumber) {
+        /* Validate; return value is card type if valid. */
+        $false = false;
+        $card_type = "";
+        $card_regexes = array(
+            "/^4\d{12}(\d\d\d){0,1}$/" => "Visa",
+            "/^5[12345]\d{14}$/" => "MasterCard",
+            "/^3[47]\d{13}$/" => "Amex",
+            "/^6011\d{12}$/" => "Discover",
+        );
+
+        foreach ($card_regexes as $regex => $type) {
+            if (preg_match($regex, $cardNumber)) {
+                $card_type = $type;
+                break;
+            }
+        }
+
+        if (!$card_type) {
+            return $false;
+        }
+
+        /*  mod 10 checksum algorithm  */
+        $revcode = strrev($cardNumber);
+        $checksum = 0;
+
+        for ($i = 0; $i < strlen($revcode); $i++) {
+            $current_num = intval($revcode[$i]);
+            if ($i & 1) { /* Odd  position */
+                $current_num *= 2;
+            }
+            /* Split digits and add. */
+            $checksum += $current_num % 10;
+            if
+            ($current_num > 9) {
+                $checksum += 1;
+            }
+        }
+
+        if ($checksum % 10 == 0) {
+            return $card_type;
+        } else {
+            return $false;
+        }
+    }
 }
