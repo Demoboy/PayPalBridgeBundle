@@ -65,7 +65,7 @@ class Configuration implements ConfigurationInterface
                             ->scalarNode('level')
                                 ->defaultValue('error')
                                 ->validate()
-                                    ->ifNotInArray(array('fine', 'info', 'error', 'warn'))
+                                    ->ifNotInArray(array('FINE', 'INFO', 'ERROR', 'WARN'))
                                     ->thenInvalid('Invalid log level type of "%s"')
                                 ->end()
                             ->end()
