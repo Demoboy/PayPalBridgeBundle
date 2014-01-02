@@ -11,9 +11,18 @@ class BridgeService {
 
     protected $clientId;
     protected $secret;
+    protected $username;
+    protected $password;
+    protected $signature;
+    protected $mode;
+    protected $config;
+
+
 
     const PAYPAL_PRODUCTION_URL = "https://api.paypal.com";
     const PAYPAL_SANDBOX_URL = "https://api.sandbox.paypal.com";
+    const PAYPAL_SANDBOX_MODE = "sandbox";
+    const PAYPAL_PRODUCTION_MODE = "live";
 
     public function __construct(array $config) {
 
@@ -22,22 +31,38 @@ class BridgeService {
             $endpoint = self::PAYPAL_PRODUCTION_URL;
             $this->setClientId($config['production']['clientId'])
                     ->setSecret($config['production']['secret']);
+
+            $this->setUsername($config['production']['username']);
+            $this->setPassword($config['production']['password']);
+            $this->setSignature($config['production']['signature']);
+            $this->setMode(self::PAYPAL_PRODUCTION_MODE);
         } else {
             $endpoint = self::PAYPAL_SANDBOX_URL;
             $this->setClientId($config['sandbox']['clientId'])
                     ->setSecret($config['sandbox']['secret']);
+
+            $this->setUsername($config['sandbox']['username']);
+            $this->setPassword($config['sandbox']['password']);
+            $this->setSignature($config['sandbox']['signature']);
+            $this->setMode(self::PAYPAL_SANDBOX_MODE);
         }
 
         $iniConfigs = array(
             'acct1.ClientId' => $this->getClientId(),
             'acct1.ClientSecret' => $this->getSecret(),
+            'acct1.UserName' => $this->getUsername(),
+            'acct1.Password' => $this->getPassword(),
+            'acct1.Signature' => $this->getSignature(),
             'service.EndPoint' => $endpoint,
+            "mode" => "sandbox",
             'http.ConnectionTimeOut' => $config['http']['timeout'],
             'http.Retry' => $config['http']['retry'],
             'log.FileName' => $config['logs']['filename'],
             'log.LogEnabled' => $config['logs']['enabled'],
             'log.LogLevel' => $config['logs']['level'],
         );
+
+        $this->setConfig($config);
 
         @mkdir(PP_CONFIG_PATH);
 
@@ -73,6 +98,94 @@ class BridgeService {
     private function setSecret($secret) {
         $this->secret = $secret;
         return $this;
+    }
+
+    /**
+     * @param mixed $password
+     * @return $this
+     */
+    private function setPassword($password)
+    {
+        $this->password = $password;
+        return $this;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getPassword()
+    {
+        return $this->password;
+    }
+
+    /**
+     * @param mixed $signature
+     * @return $this
+     */
+    private function setSignature($signature)
+    {
+        $this->signature = $signature;
+        return $this;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getSignature()
+    {
+        return $this->signature;
+    }
+
+    /**
+     * @param $username
+     * @return $this
+     */
+    private function setUsername($username)
+    {
+        $this->username = $username;
+        return $this;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getUsername()
+    {
+        return $this->username;
+    }
+
+    /**
+     * @param mixed $mode
+     * @return $this
+     */
+    private function setMode($mode)
+    {
+        $this->mode = $mode;
+        return $this;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getMode()
+    {
+        return $this->mode;
+    }
+
+    /**
+     * @param mixed $config
+     */
+    private function setConfig($config)
+    {
+        $this->config = $config;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getConfig()
+    {
+        return $this->config;
     }
 
     public function getApiContext() {
@@ -125,5 +238,8 @@ class BridgeService {
             return $false;
         }
     }
+
+
+
 
 }
