@@ -5,19 +5,16 @@ namespace KMJ\PayPalBridgeBundle\Service;
 use PayPal\Auth\OAuthTokenCredential;
 use PayPal\Rest\ApiContext;
 
+
 define('PP_CONFIG_PATH', sys_get_temp_dir());
 
 class BridgeService {
 
     protected $clientId;
     protected $secret;
-    protected $username;
-    protected $password;
-    protected $signature;
+    
     protected $mode;
     protected $config;
-
-
 
     const PAYPAL_PRODUCTION_URL = "https://api.paypal.com";
     const PAYPAL_SANDBOX_URL = "https://api.sandbox.paypal.com";
@@ -25,36 +22,25 @@ class BridgeService {
     const PAYPAL_PRODUCTION_MODE = "live";
 
     public function __construct(array $config) {
+        $this->config = $config;
 
         //create temp file and save symfony config to it
         if ($config['environment'] == "production") {
             $endpoint = self::PAYPAL_PRODUCTION_URL;
             $this->setClientId($config['production']['clientId'])
                     ->setSecret($config['production']['secret']);
-
-            $this->setUsername($config['production']['username']);
-            $this->setPassword($config['production']['password']);
-            $this->setSignature($config['production']['signature']);
             $this->setMode(self::PAYPAL_PRODUCTION_MODE);
         } else {
             $endpoint = self::PAYPAL_SANDBOX_URL;
             $this->setClientId($config['sandbox']['clientId'])
                     ->setSecret($config['sandbox']['secret']);
-
-            $this->setUsername($config['sandbox']['username']);
-            $this->setPassword($config['sandbox']['password']);
-            $this->setSignature($config['sandbox']['signature']);
+          
             $this->setMode(self::PAYPAL_SANDBOX_MODE);
         }
 
         $iniConfigs = array(
-            'acct1.ClientId' => $this->getClientId(),
-            'acct1.ClientSecret' => $this->getSecret(),
-            'acct1.UserName' => $this->getUsername(),
-            'acct1.Password' => $this->getPassword(),
-            'acct1.Signature' => $this->getSignature(),
             'service.EndPoint' => $endpoint,
-            "mode" => "sandbox",
+            "mode" => $this->getMode(),
             'http.ConnectionTimeOut' => $config['http']['timeout'],
             'http.Retry' => $config['http']['retry'],
             'log.FileName' => $config['logs']['filename'],
@@ -101,65 +87,10 @@ class BridgeService {
     }
 
     /**
-     * @param mixed $password
-     * @return $this
-     */
-    private function setPassword($password)
-    {
-        $this->password = $password;
-        return $this;
-    }
-
-    /**
-     * @return mixed
-     */
-    public function getPassword()
-    {
-        return $this->password;
-    }
-
-    /**
-     * @param mixed $signature
-     * @return $this
-     */
-    private function setSignature($signature)
-    {
-        $this->signature = $signature;
-        return $this;
-    }
-
-    /**
-     * @return mixed
-     */
-    public function getSignature()
-    {
-        return $this->signature;
-    }
-
-    /**
-     * @param $username
-     * @return $this
-     */
-    private function setUsername($username)
-    {
-        $this->username = $username;
-        return $this;
-    }
-
-    /**
-     * @return mixed
-     */
-    public function getUsername()
-    {
-        return $this->username;
-    }
-
-    /**
      * @param mixed $mode
      * @return $this
      */
-    private function setMode($mode)
-    {
+    private function setMode($mode) {
         $this->mode = $mode;
         return $this;
     }
@@ -167,30 +98,38 @@ class BridgeService {
     /**
      * @return mixed
      */
-    public function getMode()
-    {
+    public function getMode() {
         return $this->mode;
     }
 
     /**
      * @param mixed $config
      */
-    private function setConfig($config)
-    {
+    private function setConfig($config) {
         $this->config = $config;
     }
 
     /**
      * @return mixed
      */
-    public function getConfig()
-    {
+    public function getConfig() {
         return $this->config;
     }
 
     public function getApiContext() {
         $cred = new OAuthTokenCredential($this->getClientId(), $this->getSecret());
-        return new ApiContext($cred, 'Request' . time());
+        $apiContext = new ApiContext($cred, 'Request' . time());
+
+
+        $apiContext->setConfig(array(
+            "mode" => $this->getMode(),
+            'http.ConnectionTimeOut' => $this->config['http']['timeout'],
+            'log.LogEnabled' => (bool) $this->config['logs']['enabled'],
+            'log.FileName' => $this->config['logs']['filename'],
+            'log.LogLevel' => $this->config['logs']['level'],            
+        ));
+        
+        return $apiContext;
     }
 
     public function detectCardType($cardNumber) {
@@ -238,8 +177,5 @@ class BridgeService {
             return $false;
         }
     }
-
-
-
 
 }
