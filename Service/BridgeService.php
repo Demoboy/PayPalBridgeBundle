@@ -8,11 +8,14 @@ use PayPal\Rest\ApiContext;
 
 define('PP_CONFIG_PATH', sys_get_temp_dir());
 
-class BridgeService {
+/**
+ * Class BridgeService
+ */
+class BridgeService
+{
 
     protected $clientId;
     protected $secret;
-    
     protected $mode;
     protected $config;
 
@@ -21,10 +24,13 @@ class BridgeService {
     const PAYPAL_SANDBOX_MODE = "sandbox";
     const PAYPAL_PRODUCTION_MODE = "live";
 
-    public function __construct(array $config) {
+    /**
+     * @param array $config
+     */
+    public function __construct(array $config)
+    {
         $this->config = $config;
 
-        //create temp file and save symfony config to it
         if ($config['environment'] == "production") {
             $endpoint = self::PAYPAL_PRODUCTION_URL;
             $this->setClientId($config['production']['clientId'])
@@ -34,7 +40,6 @@ class BridgeService {
             $endpoint = self::PAYPAL_SANDBOX_URL;
             $this->setClientId($config['sandbox']['clientId'])
                     ->setSecret($config['sandbox']['secret']);
-          
             $this->setMode(self::PAYPAL_SANDBOX_MODE);
         }
 
@@ -50,107 +55,150 @@ class BridgeService {
 
         $this->setConfig($config);
 
-        @mkdir(PP_CONFIG_PATH);
+        //create temp file and save symfony config to it
+        if ($config['options']['create_config_file']) {
+            @mkdir(PP_CONFIG_PATH);
+            //create file in temp dir
+            $fh = fopen(PP_CONFIG_PATH . '/sdk_config.ini', 'w');
 
-        //create file in temp dir
-        $fh = fopen(PP_CONFIG_PATH . '/sdk_config.ini', 'w');
+            foreach ($iniConfigs as $key => $ini) {
+                if ($ini === false) {
+                    $ini = "false";
+                } else if ($ini === true) {
+                    $ini = "true";
+                }
 
-        foreach ($iniConfigs as $key => $ini) {
-            if ($ini === false) {
-                $ini = "false";
-            } else if ($ini === true) {
-                $ini = "true";
+                fwrite($fh, "{$key}={$ini}" . PHP_EOL);
             }
 
-            fwrite($fh, "{$key}={$ini}" . PHP_EOL);
+            fclose($fh);
         }
-
-        fclose($fh);
     }
 
-    public function getClientId() {
+    /**
+     * @return string
+     */
+    public function getClientId()
+    {
         return $this->clientId;
     }
 
-    public function getSecret() {
+    /**
+     * @return string
+     */
+    public function getSecret()
+    {
         return $this->secret;
     }
 
-    private function setClientId($clientId) {
-        $this->clientId = $clientId;
-        return $this;
-    }
-
-    private function setSecret($secret) {
-        $this->secret = $secret;
-        return $this;
-    }
-
     /**
-     * @param mixed $mode
+     * @param string $clientId
+     *
      * @return $this
      */
-    private function setMode($mode) {
-        $this->mode = $mode;
+    private function setClientId($clientId)
+    {
+        $this->clientId = $clientId;
+
         return $this;
     }
 
     /**
-     * @return mixed
+     * @param string $secret
+     *
+     * @return $this
      */
-    public function getMode() {
+    private function setSecret($secret)
+    {
+        $this->secret = $secret;
+
+        return $this;
+    }
+
+    /**
+     * @param string $mode
+     *
+     * @return $this
+     */
+    private function setMode($mode)
+    {
+        $this->mode = $mode;
+
+        return $this;
+    }
+
+    /**
+     * @return string
+     */
+    public function getMode()
+    {
         return $this->mode;
     }
 
     /**
-     * @param mixed $config
+     * @param array $config
      */
-    private function setConfig($config) {
+    private function setConfig($config)
+    {
         $this->config = $config;
     }
 
     /**
-     * @return mixed
+     * @return array
      */
-    public function getConfig() {
+    public function getConfig()
+    {
         return $this->config;
     }
 
-    public function getApiContext() {
+    /**
+     * Returns ready to use ApiContext from PayPal sdk
+     *
+     * @return ApiContext
+     */
+    public function getApiContext()
+    {
         $cred = new OAuthTokenCredential($this->getClientId(), $this->getSecret());
         $apiContext = new ApiContext($cred, 'Request' . time());
-
 
         $apiContext->setConfig(array(
             "mode" => $this->getMode(),
             'http.ConnectionTimeOut' => $this->config['http']['timeout'],
             'log.LogEnabled' => (bool) $this->config['logs']['enabled'],
             'log.FileName' => $this->config['logs']['filename'],
-            'log.LogLevel' => $this->config['logs']['level'],            
+            'log.LogLevel' => $this->config['logs']['level'],
         ));
-        
+
         return $apiContext;
     }
 
-    public function detectCardType($cardNumber) {
+    /**
+     * Returns card type name if valid or false otherwise
+     *
+     * @param string $cardNumber
+     *
+     * @return bool|string
+     */
+    public function detectCardType($cardNumber)
+    {
         /* Validate; return value is card type if valid. */
         $false = false;
-        $card_type = "";
-        $card_regexes = array(
+        $cardType = "";
+        $cardRegexes = array(
             "/^4\d{12}(\d\d\d){0,1}$/" => "visa",
             "/^5[12345]\d{14}$/" => "mastercard",
             "/^3[47]\d{13}$/" => "amex",
             "/^6011\d{12}$/" => "discover",
         );
 
-        foreach ($card_regexes as $regex => $type) {
+        foreach ($cardRegexes as $regex => $type) {
             if (preg_match($regex, $cardNumber)) {
-                $card_type = $type;
+                $cardType = $type;
                 break;
             }
         }
 
-        if (!$card_type) {
+        if (!$cardType) {
             return $false;
         }
 
@@ -159,20 +207,20 @@ class BridgeService {
         $checksum = 0;
 
         for ($i = 0; $i < strlen($revcode); $i++) {
-            $current_num = intval($revcode[$i]);
-            if ($i & 1) { /* Odd  position */
-                $current_num *= 2;
+            $currentNum = intval($revcode[$i]);
+            /* Odd  position */
+            if ($i & 1) {
+                $currentNum *= 2;
             }
             /* Split digits and add. */
-            $checksum += $current_num % 10;
-            if
-            ($current_num > 9) {
+            $checksum += $currentNum % 10;
+            if ($currentNum > 9) {
                 $checksum += 1;
             }
         }
 
         if ($checksum % 10 == 0) {
-            return $card_type;
+            return $cardType;
         } else {
             return $false;
         }

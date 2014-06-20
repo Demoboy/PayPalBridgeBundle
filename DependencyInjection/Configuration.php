@@ -101,6 +101,14 @@ class Configuration implements ConfigurationInterface
                             ->end()
                         ->end()
                     ->end()
+                    ->arrayNode('options')
+                        ->addDefaultsIfNotSet()
+                        ->children()
+                            ->scalarNode('create_config_file')
+                                ->defaultValue(true)
+                            ->end()
+                        ->end()
+                    ->end()
                 ->end();
 
         return $treeBuilder;
