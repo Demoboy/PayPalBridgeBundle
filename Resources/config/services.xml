@@ -6,12 +6,13 @@
 
     <parameters>
         <parameter key="kmj.paypalbridge.bridge.class">KMJ\PayPalBridgeBundle\Service\BridgeService</parameter>
+        <parameter key="kmj.paypalbridge.bridge.service.id">paypal</parameter>
     </parameters>
 
     <services>
         <service id="kmj.paypalbridge.bridge" class="%kmj.paypalbridge.bridge.class%">
             <argument>%kmj.paypalbridge.bridge.parameters%</argument>
         </service>
-        <service alias="kmj.paypalbridge.bridge" id="paypal" />
+        <service alias="kmj.paypalbridge.bridge" id="%kmj.paypalbridge.bridge.service.id%" />
     </services>
 </container>
