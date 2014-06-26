@@ -5,8 +5,9 @@ namespace KMJ\PayPalBridgeBundle\Service;
 use PayPal\Auth\OAuthTokenCredential;
 use PayPal\Rest\ApiContext;
 
-
-define('PP_CONFIG_PATH', sys_get_temp_dir());
+if (!defined('PP_CONFIG_PATH')) {
+    define('PP_CONFIG_PATH', sys_get_temp_dir());
+}
 
 /**
  * Class BridgeService
