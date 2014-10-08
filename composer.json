@@ -13,7 +13,7 @@
     ],
     "require": {
         "php": ">=5.3.3",
-        "paypal/rest-api-sdk-php": "dev-master"
+        "paypal/rest-api-sdk-php": "*"
     },
     "require-dev": {
         "symfony/framework-bundle": ">=2.0"
